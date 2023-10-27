@@ -2,62 +2,59 @@
 
 namespace YireoTraining\MagewireMiniCart\Magewire;
 
-use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\Api\Search\SearchCriteriaBuilder;
 use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\Data\CartInterface;
 use Magewirephp\Magewire\Component;
+use Yireo\CommonViewModels\ViewModel\CurrentProduct;
 
-class MiniCart extends Component
+class AddToCart extends Component
 {
-    public int $cartItemsCount = 0;
+    public int $productId = 0;
 
     private Session $checkoutSession;
     private ProductRepositoryInterface $productRepository;
-    private SearchCriteriaBuilder $searchCriteriaBuilder;
     private CartInterface $cart;
     private FormKey $formKey;
+    private CurrentProduct $currentProduct;
 
     /**
      * @param Session $checkoutSession
      * @param ProductRepositoryInterface $productRepository
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param FormKey $formKey
+     * @param CurrentProduct $currentProduct
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function __construct(
         Session $checkoutSession,
         ProductRepositoryInterface $productRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        FormKey $formKey
+        FormKey $formKey,
+        CurrentProduct $currentProduct
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->productRepository = $productRepository;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->cart = $this->checkoutSession->getQuote();
         $this->formKey = $formKey;
+        $this->currentProduct = $currentProduct;
     }
 
-    public function mount()
+    public function mount(): void
     {
-        $this->setCartItemsCount();
+        $this->currentProduct->initialize();
+        $this->productId = (int)$this->currentProduct->getProduct()->getId();
     }
 
     public function addToCart()
     {
-        $this->searchCriteriaBuilder->setPageSize(20);
-        $searchCriteria = $this->searchCriteriaBuilder->create();
-        $searchItems = $this->productRepository->getList($searchCriteria);
+        if (!$this->productId > 0) {
+            throw new \RuntimeException('Product ID is missing');
+        }
 
-        /** @var ProductInterface $product */
-        $products = $searchItems->getItems();
-        shuffle($products);
-        $product = array_pop($products);
+        $product = $this->productRepository->getById($this->productId);
 
         $params = [
             'formKey' => $this->formKey->getFormKey(),
@@ -70,17 +67,5 @@ class MiniCart extends Component
         $this->cart->collectTotals();
         $this->cart->save();
         $this->checkoutSession->replaceQuote($this->cart)->unsLastRealOrderId();
-
-        $this->setCartItemsCount();
-    }
-
-    private function setCartItemsCount()
-    {
-        $count = 0;
-        foreach ($this->cart->getAllItems() as $cartItem) {
-            $count += $cartItem->getQty();
-        }
-
-        $this->cartItemsCount = (int)$count;
     }
 }

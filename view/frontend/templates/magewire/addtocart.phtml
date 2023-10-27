@@ -5,7 +5,7 @@ use Yireo\MagewireMiniCart\Magewire\MiniCart;
 /** @var MiniCart $magewire */
 ?>
 <div>
-    Cart items: <?php echo $magewire->cartItemsCount; ?><br/>
+    <input type="hidden" wire:model="productId" />
     <button wire:click="addToCart">Add to cart</button>
 </div>
 

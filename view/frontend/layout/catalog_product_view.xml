@@ -3,9 +3,10 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
-            <block name="magewire.minicart" template="YireoTraining_MagewireMiniCart::magewire/minicart.phtml">
+            <block name="magewire.addtocart" template="YireoTraining_MagewireMiniCart::magewire/addtocart.phtml"
+                   before="-">
                 <arguments>
-                    <argument name="magewire" xsi:type="object">\YireoTraining\MagewireMiniCart\Magewire\MiniCart</argument>
+                    <argument name="magewire" xsi:type="object">\YireoTraining\MagewireMiniCart\Magewire\AddToCart</argument>
                 </arguments>
             </block>
         </referenceContainer>

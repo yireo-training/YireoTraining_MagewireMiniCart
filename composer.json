@@ -14,7 +14,7 @@
       "registration.php"
     ],
     "psr-4": {
-      "Yireo\\MagewireMiniCart\\": ""
+      "YireoTraining\\MagewireMiniCart\\": ""
     }
   }
 }

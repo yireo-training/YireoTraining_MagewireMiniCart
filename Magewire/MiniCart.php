@@ -7,14 +7,19 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Api\Search\SearchCriteriaBuilder;
 use Magento\Framework\Data\Form\FormKey;
+use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Cart\Data\CartItem;
 use Magewirephp\Magewire\Component;
 
 class MiniCart extends Component
 {
-    public int $cartItemsCount = 0;
+    /**
+     * @var CartItem[] $cartItems
+     */
+    public array $cartItems = [];
 
     private Session $checkoutSession;
     private ProductRepositoryInterface $productRepository;
@@ -45,42 +50,34 @@ class MiniCart extends Component
 
     public function mount()
     {
-        $this->setCartItemsCount();
+        $this->setCartItems();
     }
 
-    public function addToCart()
+    public function changeCartItemQty(int $cartItemId, float $qty)
     {
-        $this->searchCriteriaBuilder->setPageSize(20);
-        $searchCriteria = $this->searchCriteriaBuilder->create();
-        $searchItems = $this->productRepository->getList($searchCriteria);
-
-        /** @var ProductInterface $product */
-        $products = $searchItems->getItems();
-        shuffle($products);
-        $product = array_pop($products);
-
-        $params = [
-            'formKey' => $this->formKey->getFormKey(),
-            'qty' => 1,
-        ];
-
-        $params = new \Magento\Framework\DataObject($params);
-
-        $this->cart->addProduct($product, $params);
+        $buyRequest = new DataObject(['qty' => $qty]);
+        $this->cart->updateItem($cartItemId, $buyRequest);
         $this->cart->collectTotals();
         $this->cart->save();
-        $this->checkoutSession->replaceQuote($this->cart)->unsLastRealOrderId();
-
-        $this->setCartItemsCount();
+        $this->setCartItems();
     }
 
-    private function setCartItemsCount()
+    public function decrementCartItemQty(float $cartItemId)
     {
-        $count = 0;
-        foreach ($this->cart->getAllItems() as $cartItem) {
-            $count += $cartItem->getQty();
-        }
+        $cartItem = $this->cart->getItemById($cartItemId);
+        $this->changeCartItemQty((int)$cartItemId, $cartItem->getQty() - 1);
+    }
 
-        $this->cartItemsCount = (int)$count;
+    public function incrementCartItemQty(float $cartItemId)
+    {
+        $cartItem = $this->cart->getItemById($cartItemId);
+        $this->changeCartItemQty((int)$cartItemId, $cartItem->getQty() + 1);
+    }
+
+    private function setCartItems()
+    {
+        if ($this->cart->getItems()) {
+            $this->cartItems = $this->cart->getItems();
+        }
     }
 }

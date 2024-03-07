@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="cart-drawer">
+            <arguments>
+                <argument name="magewire" xsi:type="object">YireoTraining\MagewireMiniCart\Magewire\MiniCart</argument>
+            </arguments>
+            <referenceContainer name="cart-drawer.items.before">
+                <block name="magewire.minicart" template="YireoTraining_MagewireMiniCart::magewire/minicart.phtml"/>
+            </referenceContainer>
+        </referenceBlock>
+    </body>
+</page>
+
+
+
+
+

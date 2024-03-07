@@ -5,14 +5,21 @@ use Yireo\MagewireMiniCart\Magewire\MiniCart;
 /** @var MiniCart $magewire */
 ?>
 <div>
-    Cart items: <?php echo $magewire->cartItemsCount; ?><br/>
-    <button wire:click="addToCart">Add to cart</button>
+    <ul>
+        <?php foreach($magewire->cartItems as $cartItem): ?>
+        <li>
+            <strong><?= $cartItem->getName() ?> (<?= $cartItem->getQty() ?>)</strong>
+            <button wire:click="incrementCartItemQty(<?= $cartItem->getId() ?>)">Increment</button>
+            <button wire:click="decrementCartItemQty(<?= $cartItem->getId() ?>)">Decrement</button>
+        </li>
+        <?php endforeach; ?>
+    </ul>
+    <script>
+        document.addEventListener('magewire:update', function (event) {
+            require(['Magento_Customer/js/customer-data'], function (customerData) {
+                customerData.reload(['cart']);
+            });
+        });
+    </script>
 </div>
 
-<script>
-    document.addEventListener('magewire:update', function (event) {
-        require(['Magento_Customer/js/customer-data'], function (customerData) {
-            customerData.reload(['cart']);
-        });
-    });
-</script>
